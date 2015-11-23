@@ -1,2 +1,2 @@
 # ccstorm
-C++ DSL of Storm(the real time processing framework)
+C++ DSL of Storm(the real time processing framework).

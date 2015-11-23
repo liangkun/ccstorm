@@ -24,6 +24,12 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     add_definitions(-D_CRT_SECURE_NO_WARNINGS=1)
 endif()
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/rapidjson/include)
+
+file(GLOB_RECURSE SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc")
+file(GLOB_RECURSE TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cc")
+
 # Find thrift include/lib/compiler
 find_package(Thrift REQUIRED)
 include_directories(SYSTEM ${THRIFT_INCLUDE_DIR})
@@ -33,15 +39,16 @@ include_directories(${THRIFT_GEN_INCLUDE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
+add_library(storm ${THRIFT_CC_FILES_LIST} ${SOURCE} ${LIBS})
+
 if(CCSTORM_BUILD_TESTS)
     enable_testing()
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/googletest/googletest)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/googletest/googletest/include)
+    add_executable(run_unit_tests ${TEST_SOURCE})
+    target_link_libraries(run_unit_tests storm gtest gtest_main)
+    add_test(run_unit_tests run_unit_tests)
 endif()
-
-file(GLOB_RECURSE SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc")
-file(GLOB_RECURSE TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cc")
-
-add_executable(hello ${THRIFT_CC_FILES_LIST} ${SOURCE})
-target_link_libraries(hello ${LIBS})
 
 SET(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Headers install directory")
 SET(LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE STRING "Library install directory")
