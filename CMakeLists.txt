@@ -16,9 +16,6 @@ SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build Type")
 
 option(CCSTORM_BUILD_TESTS "Build ccstorm unittests." ON)
 
-# Build all binaries in a separate directory
-SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -march=native -Wall -Wextra")
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -40,12 +37,10 @@ if(CCSTORM_BUILD_TESTS)
     enable_testing()
 endif()
 
-SET(SRC
-   src/hello.cc
-   src/storm-thrift-fix.cc
-)
+file(GLOB_RECURSE SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc")
+file(GLOB_RECURSE TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cc")
 
-add_executable(hello ${THRIFT_CC_FILES_LIST} ${SRC})
+add_executable(hello ${THRIFT_CC_FILES_LIST} ${SOURCE})
 target_link_libraries(hello ${LIBS})
 
 SET(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Headers install directory")
