@@ -30,11 +30,11 @@ TopologyContext *ParseTopologyContext(const string &jstr) {
     map<int, string> task_2_component;
     for (auto iter = components.MemberBegin(); iter != components.MemberEnd(); ++iter) {
         int id = atoi(iter->name.GetString());
-        task_2_component[id] = iter->value.GetString();
+        task_2_component[id] = string(iter->value.GetString(), iter->value.GetStringLength());
     }
 
     // parse pidDir
-    string pid_dir = doc["pidDir"].GetString();
+    string pid_dir{ doc["pidDir"].GetString(), doc["pidDir"].GetStringLength() };
 
     // parse config
     Value &config = doc["conf"];
