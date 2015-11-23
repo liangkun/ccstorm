@@ -2,47 +2,44 @@
 // Authors: Liang Kun <liangkun@ishumei.com>.
 
 #include "storm/internal/protocol.h"
-#include <string>
-#include <memory>
 #include <cstdlib>
+#include <map>
+#include <string>
 #include "rapidjson/document.h"
-#include "storm/exceptions.h"
+#include "storm/exception.h"
 
 using std::atoi;
-using std::string;
 using std::map;
-using std::unique_ptr;
+using std::string;
 using rapidjson::Document;
 using rapidjson::Value;
 
 namespace storm { namespace internal { namespace protocol {
 
-unique_ptr<TopologyContext> ParseTopologyContext(const string &jstr) {
+TopologyContext *ParseTopologyContext(const string &jstr) {
     Document doc;
     doc.Parse(jstr.c_str());
     if (doc.HasParseError()) {
         throw ProtocolException(doc.GetParseError(), "failed to parse initial handshake: " + jstr);
     }
 
-    if (!doc.HasMember("context") || !doc.HasMember("pidDir") || !doc.HasMember("conf")) {
-        throw ProtocolException("missing context, pidDir or conf field(s) in initial handshake");
-    }
-
-    Value &jcontext = doc["context"];
-    if (!jcontext.HasMember("task->component") || !jcontext.HasMember("taskid")) {
-        throw ProtocolException("missing task->component or task_id in context");
-    }
-    Value &jtask_2_component = jcontext["task->component"];
-    int task_id = jcontext["taskid"].GetInt();
+    // parse context
+    Value &context = doc["context"];
+    int taskid = context["taskid"].GetInt();
+    Value &components = context["task->component"];
     map<int, string> task_2_component;
-    for (auto iter = jtask_2_component.MemberBegin(); iter != jtask_2_component.MemberEnd(); ++iter) {
+    for (auto iter = components.MemberBegin(); iter != components.MemberEnd(); ++iter) {
         int id = atoi(iter->name.GetString());
         task_2_component[id] = iter->value.GetString();
     }
 
+    // parse pidDir
     string pid_dir = doc["pidDir"].GetString();
 
-    return unique_ptr<TopologyContext>(new TopologyContext(task_id, task_2_component, pid_dir));
+    // parse config
+    Value &config = doc["conf"];
+
+    return new TopologyContext(taskid, &task_2_component, &pid_dir, &config);
 }
 
 }}}  // namespace storm::internal::protocol

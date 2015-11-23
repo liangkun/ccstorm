@@ -4,12 +4,12 @@
 #define CCSTORM_PROTOCOL_H
 
 #include <string>
-#include <memory>
 #include "storm/topology-context.h"
 
 namespace storm { namespace internal { namespace protocol {
 
-std::unique_ptr<TopologyContext> ParseTopologyContext(const std::string &jstr);
+// Caller will have the ownership of result.
+TopologyContext *ParseTopologyContext(const std::string &jstr);
 
 }}}  // namespace storm::internal::protocol
 
