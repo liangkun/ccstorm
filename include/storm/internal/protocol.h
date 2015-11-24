@@ -7,6 +7,7 @@
 #include <string>
 #include "json/json.h"
 #include "storm/topology-context.h"
+#include "storm/tuple.h"
 
 namespace storm { namespace internal { namespace protocol {
 
@@ -15,12 +16,23 @@ Json::Value NextMessage(std::istream &is);
 
 void EmitMessage(const Json::Value &root, std::ostream &os);
 
+void EmitSync(std::ostream &os);
+
+void EmitAck(const std::string &id, std::ostream &os);
+
+void EmitFail(const std::string &id, std::ostream &os);
+
+void EmitLog(const std::string &log, std::ostream &os);
+
 // Finish initial handshake between ShellComponent and C++ Component.
 // Caller will have the ownership of the result TopologyContext.
 TopologyContext *InitialHandshake(std::istream &is, std::ostream &os);
 
 // Caller will have the ownership of the result TopologyContext.
 TopologyContext *ParseTopologyContext(Json::Value &root);
+
+// Caller will have the ownership of the result Tuple.
+Tuple *ParseTuple(Json::Value &root);
 
 }}}  // namespace storm::internal::protocol
 

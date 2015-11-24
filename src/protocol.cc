@@ -62,6 +62,33 @@ void EmitMessage(const Json::Value &root, ostream &os) {
     }
 }
 
+void EmitSync(std::ostream &os) {
+    Value msg;
+    msg["command"] = "sync";
+    EmitMessage(msg, os);
+}
+
+void EmitAck(const std::string &id, std::ostream &os) {
+    Value msg;
+    msg["command"] = "ack";
+    msg["id"] = id;
+    EmitMessage(msg, os);
+}
+
+void EmitFail(const std::string &id, std::ostream &os) {
+    Value msg;
+    msg["command"] = "fail";
+    msg["id"] = id;
+    EmitMessage(msg, os);
+}
+
+void EmitLog(const std::string &log, std::ostream &os) {
+    Value msg;
+    msg["command"] = "log";
+    msg["msg"] = log;
+    EmitMessage(msg, os);
+}
+
 TopologyContext *InitialHandshake(istream &is, ostream &os) {
     Value message = NextMessage(is);
     unique_ptr<TopologyContext> tc{ ParseTopologyContext(message) };
@@ -98,6 +125,16 @@ TopologyContext *ParseTopologyContext(Value &root) {
     Value config = root["conf"];
 
     return new TopologyContext(taskid, &task_2_component, &pid_dir, &config);
+}
+
+Tuple *ParseTuple(Value &root) {
+    return new Tuple(
+            root["id"].asString(),
+            root["comp"].asString(),
+            root["stream"].asString(),
+            root["task"].asInt(),
+            root["tuple"]
+    );
 }
 
 }}}  // namespace storm::internal::protocol

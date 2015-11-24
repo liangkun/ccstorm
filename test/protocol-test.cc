@@ -55,6 +55,41 @@ TEST(ProtocolTest, EmitMessage) {
     ASSERT_EQ(root, NextMessage(ss));
 }
 
+TEST(ProtocolTest, EmitSync) {
+    stringstream ss;
+    EmitSync(ss);
+    Value msg = NextMessage(ss);
+
+    ASSERT_STREQ("sync", msg["command"].asCString());
+}
+
+TEST(ProtocolTest, EmitAck) {
+    stringstream ss;
+    EmitAck("12335", ss);
+    Value msg = NextMessage(ss);
+
+    ASSERT_STREQ("ack", msg["command"].asCString());
+    ASSERT_STREQ("12335", msg["id"].asCString());
+}
+
+TEST(ProtocolTest, EmitFail) {
+    stringstream ss;
+    EmitFail("12335", ss);
+    Value msg = NextMessage(ss);
+
+    ASSERT_STREQ("fail", msg["command"].asCString());
+    ASSERT_STREQ("12335", msg["id"].asCString());
+}
+
+TEST(ProtocolTest, EmitLog) {
+    stringstream ss;
+    EmitLog("hello, world", ss);
+    Value msg = NextMessage(ss);
+
+    ASSERT_STREQ("log", msg["command"].asCString());
+    ASSERT_STREQ("hello, world", msg["msg"].asCString());
+}
+
 TEST(ProtocolTest, ParseTopologyContext_Legal) {
     const string legal {
         "{\"pidDir\":\"\\/path\\/to\\/pids\","
