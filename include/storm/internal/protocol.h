@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 #include "json/json.h"
 #include "storm/topology-context.h"
 #include "storm/tuple.h"
@@ -21,6 +22,13 @@ void EmitSync(std::ostream &os);
 void EmitAck(const std::string &id, std::ostream &os);
 
 void EmitFail(const std::string &id, std::ostream &os);
+
+void EmitTuple(
+        const std::string &stream,
+        const std::vector<const Tuple*> &anchors,
+        const Tuple &output,
+        std::ostream &os
+);
 
 void EmitLog(const std::string &log, std::ostream &os);
 

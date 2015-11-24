@@ -82,6 +82,26 @@ void EmitFail(const std::string &id, std::ostream &os) {
     EmitMessage(msg, os);
 }
 
+void EmitTuple(
+        const std::string &stream,
+        const std::vector<const Tuple*> &anchors,
+        const Tuple &output,
+        std::ostream &os
+) {
+    Value msg;
+    msg["command"] = "emit";
+    msg["stream"] = stream;
+    if (!anchors.empty()) {
+        Value anchor_ids;
+        for (auto &tuple: anchors) {
+            anchor_ids.append(Value(tuple->id()));
+        }
+        msg["anchors"] = anchor_ids;
+    }
+    msg["tuple"] = output.values();
+    EmitMessage(msg, os);
+}
+
 void EmitLog(const std::string &log, std::ostream &os) {
     Value msg;
     msg["command"] = "log";

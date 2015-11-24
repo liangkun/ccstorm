@@ -5,19 +5,23 @@
 #include <memory>
 #include <fstream>
 #include <sstream>
+#include <vector>
 #include "gtest/gtest.h"
 #include "json/json.h"
 #include "storm/exception.h"
+#include "storm/tuple.h"
 #include "storm/internal/protocol.h"
 
 using std::remove;
 using std::stringstream;
 using std::string;
 using std::unique_ptr;
+using std::vector;
 using Json::Reader;
 using Json::Value;
 using storm::TopologyContext;
 using storm::ProtocolException;
+using storm::Tuple;
 using namespace storm::internal::protocol;
 
 TEST(ProtocolTest, NextMessage_Legal) {
@@ -79,6 +83,40 @@ TEST(ProtocolTest, EmitFail) {
 
     ASSERT_STREQ("fail", msg["command"].asCString());
     ASSERT_STREQ("12335", msg["id"].asCString());
+}
+
+TEST(ProtocolTest, EmitTuple) {
+    stringstream ss;
+    Value values;
+    values.append(Value("hello"));
+    values.append(Value(1));
+    values.append(Value("world"));
+    Tuple tuple("12335", "rule-matcher", "default", 3, values);
+
+    // no anchors
+    vector<const Tuple*> anchors;
+    EmitTuple("mystream", anchors, tuple, ss);
+    Value msg_no_anchor = NextMessage(ss);
+    ASSERT_STREQ("emit", msg_no_anchor["command"].asCString());
+    ASSERT_FALSE(msg_no_anchor.isMember("anchors"));
+    ASSERT_STREQ("mystream", msg_no_anchor["stream"].asCString());
+    ASSERT_EQ(values, msg_no_anchor["tuple"]);
+
+    // with anchors
+    unique_ptr<Tuple> an0 { new Tuple("12330", "an1", "default", 1, Value::null) };
+    unique_ptr<Tuple> an1 { new Tuple("12331", "an1", "default", 1, Value::null) };
+    unique_ptr<Tuple> an2 { new Tuple("12332", "an1", "default", 1, Value::null) };
+    anchors.push_back(an0.get());
+    anchors.push_back(an1.get());
+    anchors.push_back(an2.get());
+    EmitTuple("mystream", anchors, tuple, ss);
+    Value msg_with_anchor = NextMessage(ss);
+    ASSERT_STREQ("emit", msg_no_anchor["command"].asCString());
+    ASSERT_STREQ("mystream", msg_no_anchor["stream"].asCString());
+    ASSERT_EQ(values, msg_no_anchor["tuple"]);
+    ASSERT_STREQ("12330", msg_with_anchor["anchors"][0].asCString());
+    ASSERT_STREQ("12331", msg_with_anchor["anchors"][1].asCString());
+    ASSERT_STREQ("12332", msg_with_anchor["anchors"][2].asCString());
 }
 
 TEST(ProtocolTest, EmitLog) {
