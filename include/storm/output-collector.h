@@ -4,13 +4,15 @@
 #define CCSTORM_OUTPUT_COLLECTOR_H_H
 
 #include <iostream>
+#include <string>
+#include <vector>
 #include "storm/internal/protocol.h"
 
 namespace storm {
 
 class OutputCollector {
 public:
-    OutputCollector(std::istream &is, std::ostream &os): _is(is), _os(os) {}
+    OutputCollector(std::ostream &os): _os(os) {}
 
     void Ack(const Tuple &input) {
         internal::protocol::EmitAck(input.id(), _os);
@@ -19,8 +21,12 @@ public:
     void Fail(const Tuple &input) {
         internal::protocol::EmitFail(input.id(), _os);
     }
+
+    void Emit(const std::string &stream, const std::vector<const Tuple*> &anchors, const Tuple &output) {
+        internal::protocol::EmitTuple(stream, anchors, output, _os);
+    }
+
 private:
-    std::istream &_is;
     std::ostream &_os;
 };
 
