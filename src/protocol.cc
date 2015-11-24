@@ -3,8 +3,12 @@
 
 #include "storm/internal/protocol.h"
 #include <cstdlib>
+#include <unistd.h>
+#include <fstream>
 #include <iostream>
 #include <map>
+#include <memory>
+#include <sstream>
 #include <string>
 #include "json/json.h"
 #include "storm/exception.h"
@@ -13,9 +17,12 @@ using std::atoi;
 using std::getline;
 using std::istream;
 using std::ostream;
+using std::stringstream;
+using std::ofstream;
 using std::endl;
 using std::map;
 using std::string;
+using std::unique_ptr;
 using Json::Reader;
 using Json::FastWriter;
 using Json::Value;
@@ -48,11 +55,29 @@ Value NextMessage(istream &is) {
 void EmitMessage(const Json::Value &root, ostream &os) {
     FastWriter writer;
     os << writer.write(root) << "end" << endl;
+    if (os.bad()) {
+        stringstream err;
+        err << "failed to send message: " << root;
+        throw ProtocolException(err.str());
+    }
 }
 
-TopologyContext *InitialHandshake(istream &is) {
+TopologyContext *InitialHandshake(istream &is, ostream &os) {
     Value message = NextMessage(is);
-    return ParseTopologyContext(message);
+    unique_ptr<TopologyContext> tc{ ParseTopologyContext(message) };
+    pid_t current_pid = getpid();
+
+    // create pid file
+    stringstream pid_file_path;
+    pid_file_path << tc->pid_dir() << "/" << current_pid;
+    ofstream pid_file(pid_file_path.str());
+
+    // send pid to os
+    Value pid_message;
+    pid_message["pid"] = current_pid;
+    EmitMessage(pid_message, os);
+
+    return tc.release();
 }
 
 TopologyContext *ParseTopologyContext(Value &root) {
