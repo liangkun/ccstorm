@@ -85,13 +85,39 @@ TEST(ProtocolTest, EmitFail) {
     ASSERT_STREQ("12335", msg["id"].asCString());
 }
 
-TEST(ProtocolTest, EmitTuple) {
+TEST(ProtocolTest, EmitTuple_SingleAnchor) {
     stringstream ss;
     Value values;
     values.append(Value("hello"));
     values.append(Value(1));
     values.append(Value("world"));
-    Tuple tuple("12335", "rule-matcher", "default", 3, values);
+    Tuple tuple(values);
+
+    // no anchors
+    EmitTuple("mystream", nullptr, tuple, ss);
+    Value msg_no_anchor = NextMessage(ss);
+    ASSERT_STREQ("emit", msg_no_anchor["command"].asCString());
+    ASSERT_FALSE(msg_no_anchor.isMember("anchors"));
+    ASSERT_STREQ("mystream", msg_no_anchor["stream"].asCString());
+    ASSERT_EQ(values, msg_no_anchor["tuple"]);
+
+    // with anchors
+    unique_ptr<Tuple> an { new Tuple("12330", "an1", "default", 1, Value::null) };
+    EmitTuple("mystream", an.get(), tuple, ss);
+    Value msg_with_anchor = NextMessage(ss);
+    ASSERT_STREQ("emit", msg_no_anchor["command"].asCString());
+    ASSERT_STREQ("mystream", msg_no_anchor["stream"].asCString());
+    ASSERT_EQ(values, msg_no_anchor["tuple"]);
+    ASSERT_STREQ("12330", msg_with_anchor["anchors"][0].asCString());
+}
+
+TEST(ProtocolTest, EmitTuple_MultiAnchor) {
+    stringstream ss;
+    Value values;
+    values.append(Value("hello"));
+    values.append(Value(1));
+    values.append(Value("world"));
+    Tuple tuple(values);
 
     // no anchors
     vector<const Tuple*> anchors;

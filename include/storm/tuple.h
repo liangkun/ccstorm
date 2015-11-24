@@ -17,6 +17,9 @@ public:
           const Json::Value &values
     ): _id(id), _component(component), _stream(stream), _task(task), _values(values) {}
 
+    Tuple(const Json::Value &values):
+            _id("0"), _component(""), _stream("default"), _task(0), _values(values) {}
+
     const std::string &id() const { return _id; }
     const std::string &component() const { return _component; }
     const std::string &stream() const { return _stream; }
