@@ -13,6 +13,8 @@ namespace storm { namespace internal { namespace protocol {
 // Read and parse an input json message
 Json::Value NextMessage(std::istream &is);
 
+void EmitMessage(const Json::Value &root, std::ostream &os);
+
 // Parse initial handshake between ShellComponent and C++ Component.
 TopologyContext *InitialHandshake(std::istream &is);
 

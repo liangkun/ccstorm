@@ -12,9 +12,12 @@
 using std::atoi;
 using std::getline;
 using std::istream;
+using std::ostream;
+using std::endl;
 using std::map;
 using std::string;
 using Json::Reader;
+using Json::FastWriter;
 using Json::Value;
 
 namespace storm { namespace internal { namespace protocol {
@@ -42,6 +45,11 @@ Value NextMessage(istream &is) {
     return result;
 }
 
+void EmitMessage(const Json::Value &root, ostream &os) {
+    FastWriter writer;
+    os << writer.write(root) << "end" << endl;
+}
+
 TopologyContext *InitialHandshake(istream &is) {
     Value message = NextMessage(is);
     return ParseTopologyContext(message);
@@ -59,10 +67,10 @@ TopologyContext *ParseTopologyContext(Value &root) {
     }
 
     // parse pidDir
-    string pid_dir{ root["pidDir"].asString() };
+    string pid_dir = root["pidDir"].asString();
 
     // parse config
-    Value &config = root["conf"];
+    Value config = root["conf"];
 
     return new TopologyContext(taskid, &task_2_component, &pid_dir, &config);
 }

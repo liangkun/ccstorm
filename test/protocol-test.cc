@@ -18,6 +18,28 @@ using storm::TopologyContext;
 using storm::ProtocolException;
 using namespace storm::internal::protocol;
 
+TEST(ProtocolTest, NextMessage_Legal) {
+    stringstream ss;
+    ss << "{\"count\":12}\nend\n"
+       << "{\"object\":{\"message\":\"hello, world\"}}\nend\n";
+
+    Value message = NextMessage(ss);
+    ASSERT_EQ(12, message["count"].asInt());
+
+    message = NextMessage(ss);
+    ASSERT_STREQ("hello, world", message["object"]["message"].asCString());
+}
+
+TEST(ProtocolTest, NextMessage_Illegal) {
+    stringstream no_end;
+    no_end << "{\"count\":12}\n";
+    ASSERT_THROW(NextMessage(no_end), ProtocolException);
+
+    stringstream illegal_json;
+    illegal_json << "{abc:\nend\n";
+    ASSERT_THROW(NextMessage(illegal_json), ProtocolException);
+}
+
 TEST(ProtocolTest, ParseTopologyContext_Legal) {
     const string legal {
         "{\"pidDir\":\"\\/path\\/to\\/pids\","
