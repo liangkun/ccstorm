@@ -5,17 +5,19 @@
 
 #include <iostream>
 #include <string>
+#include "json/json.h"
 #include "storm/topology-context.h"
 
 namespace storm { namespace internal { namespace protocol {
 
-// Read an input json message
+// Read and parse an input json message
+Json::Value NextMessage(std::istream &is);
 
 // Parse initial handshake between ShellComponent and C++ Component.
-TopologyContext *InitialHandshake(std::istream &input);
+TopologyContext *InitialHandshake(std::istream &is);
 
 // Caller will have the ownership of result.
-TopologyContext *ParseTopologyContext(const std::string &jstr);
+TopologyContext *ParseTopologyContext(Json::Value &root);
 
 }}}  // namespace storm::internal::protocol
 

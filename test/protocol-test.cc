@@ -5,12 +5,15 @@
 #include <sstream>
 #include <string>
 #include "gtest/gtest.h"
+#include "json/json.h"
 #include "storm/exception.h"
 #include "storm/internal/protocol.h"
 
 using std::stringstream;
 using std::string;
 using std::unique_ptr;
+using Json::Reader;
+using Json::Value;
 using storm::TopologyContext;
 using storm::ProtocolException;
 using namespace storm::internal::protocol;
@@ -28,8 +31,11 @@ TEST(ProtocolTest, ParseTopologyContext_Legal) {
                 "\"taskid\":3},"
             "\"conf\":{\"storm.id\":\"test-topology\"}}"
     };
+    Value root;
+    Reader reader;
+    ASSERT_TRUE(reader.parse(legal, root));
 
-    unique_ptr<TopologyContext> tc{ ParseTopologyContext(legal) };
+    unique_ptr<TopologyContext> tc{ ParseTopologyContext(root) };
 
     ASSERT_EQ(3, tc->task_id());
     ASSERT_STREQ("/path/to/pids", tc->pid_dir().c_str());
@@ -38,11 +44,6 @@ TEST(ProtocolTest, ParseTopologyContext_Legal) {
     ASSERT_STREQ("sentry-query", tc->task_2_component().at(4).c_str());
     ASSERT_STREQ("rules-matcher", tc->component().c_str());
     ASSERT_STREQ("test-topology", tc->config()["storm.id"].asCString());
-}
-
-TEST(ProtocolTest, ParseTopologyContext_IllegalJson) {
-    ASSERT_THROW(ParseTopologyContext(""), ProtocolException);
-    ASSERT_THROW(ParseTopologyContext("{abc: 12}"), ProtocolException);
 }
 
 TEST(ProtocolTest, InitialHandshake_Legal) {

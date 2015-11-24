@@ -19,32 +19,37 @@ using Json::Value;
 
 namespace storm { namespace internal { namespace protocol {
 
-TopologyContext *InitialHandshake(istream &input) {
-    string jstr;
+Value NextMessage(istream &is) {
+    string jmessage;
+
     string line;
-    while (true) {
-        if (!getline(input, line).good()) {
-            throw ProtocolException("initial handshake terminated too early");
+    while (is.good()) {
+        if (!getline(is, line).good()) {
+            throw ProtocolException("message istream terminated too early");
         }
         if (line == "end") {
             break;
         }
-        jstr += line;
-        jstr += "\n";
+        jmessage += line;
+        jmessage += "\n";
     }
 
-    return ParseTopologyContext(jstr);
+    Value result;
+    Reader reader;
+    if (!reader.parse(jmessage, result)) {
+        throw ProtocolException(reader.getFormattedErrorMessages());
+    }
+    return result;
 }
 
-TopologyContext *ParseTopologyContext(const string &jstr) {
-    Value root;
-    Reader reader;
-    if (!reader.parse(jstr, root)) {
-        throw ProtocolException("failed to parse initial handshake: " + jstr);
-    }
+TopologyContext *InitialHandshake(istream &is) {
+    Value message = NextMessage(is);
+    return ParseTopologyContext(message);
+}
 
+TopologyContext *ParseTopologyContext(Value &root) {
     // parse context
-    Value &context = root["context"];
+    Value context = root["context"];
     int taskid = context["taskid"].asInt();
     Value &components = context["task->component"];
     map<int, string> task_2_component;
