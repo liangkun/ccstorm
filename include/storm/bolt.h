@@ -22,6 +22,9 @@ public:
 
         while(is().good()) {
             Json::Value message = internal::protocol::NextMessage(is());
+            if (message.isArray()) {
+                continue;  // ignore receiving taskids for now
+            }
             _tuple.reset(internal::protocol::ParseTuple(message));
             if (_tuple->stream() == "__heartbeat") {
                 internal::protocol::EmitSync(os());

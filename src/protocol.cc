@@ -17,6 +17,7 @@ using std::atoi;
 using std::getline;
 using std::istream;
 using std::ostream;
+using std::ios;
 using std::stringstream;
 using std::ofstream;
 using std::endl;
@@ -44,6 +45,11 @@ Value NextMessage(istream &is) {
         jmessage += "\n";
     }
 
+#ifdef STORM_PROTOCOL_DEBUG
+    ofstream ofs(STORM_PROTOCOL_DEBUG "/inputs", ios::app);
+    ofs << jmessage << endl;
+#endif
+
     Value result;
     Reader reader;
     if (!reader.parse(jmessage, result)) {
@@ -55,6 +61,12 @@ Value NextMessage(istream &is) {
 void EmitMessage(const Json::Value &root, ostream &os) {
     FastWriter writer;
     os << writer.write(root) << "end" << endl;
+
+#ifdef STORM_PROTOCOL_DEBUG
+    ofstream ofs(STORM_PROTOCOL_DEBUG "/outputs", ios::app);
+    ofs << root << endl;
+#endif
+
     if (os.bad()) {
         stringstream err;
         err << "failed to send message: " << root;

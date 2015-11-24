@@ -22,6 +22,10 @@ public:
         internal::protocol::EmitFail(input.id(), _os);
     }
 
+    void Emit(const std::string &stream, const Tuple *anchor, const Tuple &output) {
+        internal::protocol::EmitTuple(stream, anchor, output, _os);
+    }
+
     void Emit(const std::string &stream, const std::vector<const Tuple*> &anchors, const Tuple &output) {
         internal::protocol::EmitTuple(stream, anchors, output, _os);
     }
