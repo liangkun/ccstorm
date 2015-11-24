@@ -3,4 +3,13 @@
 #ifndef CCSTORM_ICOMPONENT_H
 #define CCSTORM_ICOMPONENT_H
 
+namespace storm {
+
+// Base class of storm components.
+class Component {
+
+};
+
+}
+
 #endif //CCSTORM_ICOMPONENT_H

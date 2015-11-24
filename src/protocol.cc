@@ -3,41 +3,61 @@
 
 #include "storm/internal/protocol.h"
 #include <cstdlib>
+#include <iostream>
 #include <map>
 #include <string>
-#include "rapidjson/document.h"
+#include "json/json.h"
 #include "storm/exception.h"
 
 using std::atoi;
+using std::getline;
+using std::istream;
 using std::map;
 using std::string;
-using rapidjson::Document;
-using rapidjson::Value;
+using Json::Reader;
+using Json::Value;
 
 namespace storm { namespace internal { namespace protocol {
 
+TopologyContext *InitialHandshake(istream &input) {
+    string jstr;
+    string line;
+    while (true) {
+        if (!getline(input, line).good()) {
+            throw ProtocolException("initial handshake terminated too early");
+        }
+        if (line == "end") {
+            break;
+        }
+        jstr += line;
+        jstr += "\n";
+    }
+
+    return ParseTopologyContext(jstr);
+}
+
 TopologyContext *ParseTopologyContext(const string &jstr) {
-    Document doc;
-    doc.Parse(jstr.c_str());
-    if (doc.HasParseError()) {
-        throw ProtocolException(doc.GetParseError(), "failed to parse initial handshake: " + jstr);
+    Value root;
+    Reader reader;
+    if (!reader.parse(jstr, root)) {
+        throw ProtocolException("failed to parse initial handshake: " + jstr);
     }
 
     // parse context
-    Value &context = doc["context"];
-    int taskid = context["taskid"].GetInt();
+    Value &context = root["context"];
+    int taskid = context["taskid"].asInt();
     Value &components = context["task->component"];
     map<int, string> task_2_component;
-    for (auto iter = components.MemberBegin(); iter != components.MemberEnd(); ++iter) {
-        int id = atoi(iter->name.GetString());
-        task_2_component[id] = string(iter->value.GetString(), iter->value.GetStringLength());
+    for (auto iter = components.begin(); iter != components.end(); ++iter) {
+        int id = atoi(iter.name().c_str());
+        task_2_component[id] = iter->asString();
     }
 
     // parse pidDir
-    string pid_dir{ doc["pidDir"].GetString(), doc["pidDir"].GetStringLength() };
+    string pid_dir{ root["pidDir"].asString() };
 
     // parse config
-    Value &config = doc["conf"];
+    Value &config = root["conf"];
 
     return new TopologyContext(taskid, &task_2_component, &pid_dir, &config);
 }
