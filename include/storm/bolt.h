@@ -1,11 +1,12 @@
-// Copyright (c) 2015 ShuMei Inc. All rights reserved.
+// Copyright (c) 2015 SHUMEI Inc. All rights reserved.
 // Authors: Liang Kun <liangkun@ishumei.com>.
-#ifndef CCSTORM_RICH_BOLT_H
-#define CCSTORM_RICH_BOLT_H
+
+#ifndef STORM_RICH_BOLT_H
+#define STORM_RICH_BOLT_H
 
 #include <iostream>
 #include <memory>
-#include "json/json.h"
+#include "storm/internal/json.h"
 #include "storm/component.h"
 #include "storm/output-collector.h"
 
@@ -13,37 +14,41 @@ namespace storm {
 
 class Bolt: public Component {
 public:
-    Bolt(std::istream &is, std::ostream &os): Component(is, os), _oc(os) {}
+    Bolt(): Component() {}  // default constructor
     virtual ~Bolt() {}
 
-    virtual void Run() {
-        Component::Run();
+    virtual void Run(std::istream &istream, std::ostream &ostream) {
+        Component::Run(istream, ostream);
+        _oc.reset(new OutputCollector(os()));
         Prepare();
 
         while(is().good()) {
-            Json::Value message = internal::protocol::NextMessage(is());
-            if (message.isArray()) {
+            internal::json::Value message { internal::protocol::NextMessage(is()) };
+            if (message.IsArray()) {
                 continue;  // ignore receiving taskids for now
             }
-            _tuple.reset(internal::protocol::ParseTuple(message));
+            _tuple.reset(internal::protocol::ParseTuple(&message));
             if (_tuple->stream() == "__heartbeat") {
                 internal::protocol::EmitSync(os());
             } else {
-                Execute(*_tuple);
+                Execute(_tuple.get());
             }
         }
     }
 
-    OutputCollector &oc() { return _oc; }
+protected:
+    OutputCollector &oc() { return *_oc; }
 
     virtual void Prepare() {}
-    virtual void Execute(Tuple &input) {}
+
+    // Execute() can do anything to input tuple.
+    virtual void Execute(Tuple *input) {}
 
 private:
-    OutputCollector _oc;
+    std::unique_ptr<OutputCollector> _oc;
     std::unique_ptr<Tuple> _tuple;
 };
 
 }  // namespace storm
 
-#endif  // CCSTORM_RICH_BOLT_H
+#endif  // STORM_RICH_BOLT_H

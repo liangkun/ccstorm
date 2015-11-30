@@ -1,7 +1,8 @@
-// Copyright (c) 2015 ShuMei Inc. All rights reserved.
+// Copyright (c) 2015 SHUMEI Inc. All rights reserved.
 // Authors: Liang Kun <liangkun@ishumei.com>.
-#ifndef CCSTORM_EXCEPTIONS_H
-#define CCSTORM_EXCEPTIONS_H
+
+#ifndef STORM_EXCEPTIONS_H
+#define STORM_EXCEPTIONS_H
 
 #include <string>
 
@@ -29,4 +30,4 @@ class ProtocolException: public StormException {
 
 }  // namespace storm
 
-#endif //CCSTORM_EXCEPTIONS_H
+#endif // STORM_EXCEPTIONS_H

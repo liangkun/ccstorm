@@ -1,4 +1,4 @@
-// Copyright (c) 2015 ShuMei Inc. All rights reserved.
+// Copyright (c) 2015 SHUMEI Inc. All rights reserved.
 // Authors: Liang Kun <liangkun@ishumei.com>.
 
 #include "storm/internal/protocol.h"
@@ -10,7 +10,9 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include "json/json.h"
+#include <utility>
+#include <vector>
+#include "storm/internal/json.h"
 #include "storm/exception.h"
 
 using std::atoi;
@@ -22,15 +24,15 @@ using std::stringstream;
 using std::ofstream;
 using std::endl;
 using std::map;
+using std::move;
 using std::string;
 using std::unique_ptr;
-using Json::Reader;
-using Json::FastWriter;
-using Json::Value;
+using std::vector;
+namespace json = storm::internal::json;
 
 namespace storm { namespace internal { namespace protocol {
 
-Value NextMessage(istream &is) {
+json::Value NextMessage(istream &is) {
     string jmessage;
 
     string line;
@@ -46,102 +48,111 @@ Value NextMessage(istream &is) {
     }
 
 #ifdef STORM_PROTOCOL_DEBUG
-    ofstream ofs(STORM_PROTOCOL_DEBUG "/inputs", ios::app);
+    ofstream ofs(STORM_PROTOCOL_DEBUG "/storm-protocol-inputs", ios::app);
     ofs << jmessage << endl;
 #endif
 
-    Value result;
-    Reader reader;
-    if (!reader.parse(jmessage, result)) {
-        throw ProtocolException(reader.getFormattedErrorMessages());
+    json::Document document(&json::g_CrtAllocator);
+    document.Parse(jmessage.c_str());
+    if (document.HasParseError()) {
+        stringstream error;
+        error << json::GetParseError(document.GetParseError())
+              << " at position: "
+              << document.GetErrorOffset();
+        throw ProtocolException(error.str());
     }
+
+    json::Value result;
+    result.Swap(document);
+
     return result;
 }
 
-void EmitMessage(const Json::Value &root, ostream &os) {
-    FastWriter writer;
-    os << writer.write(root) << "end" << endl;
+void EmitMessage(const json::Value &root, ostream &os) {
+    json::StringBuffer buffer;
+    json::Writer writer(buffer, &json::g_CrtAllocator);
+    root.Accept(writer);
+    os << buffer.GetString() << "\nend" << endl;
 
 #ifdef STORM_PROTOCOL_DEBUG
-    ofstream ofs(STORM_PROTOCOL_DEBUG "/outputs", ios::app);
-    ofs << root << endl;
+    ofstream ofs(STORM_PROTOCOL_DEBUG "/storm-protocol-outputs", ios::app);
+    ofs << buffer.GetString() << endl;
 #endif
 
     if (os.bad()) {
         stringstream err;
-        err << "failed to send message: " << root;
+        err << "failed to send message: " << buffer.GetString();
         throw ProtocolException(err.str());
     }
 }
 
-void EmitSync(std::ostream &os) {
-    Value msg;
-    msg["command"] = "sync";
+void EmitSync(ostream &os) {
+    json::Value msg;
+    msg.SetObject();
+    msg.AddMember("command", "sync", json::g_CrtAllocator);
     EmitMessage(msg, os);
 }
 
-void EmitAck(const std::string &id, std::ostream &os) {
-    Value msg;
-    msg["command"] = "ack";
-    msg["id"] = id;
+void EmitAck(const string &id, ostream &os) {
+    json::Value msg;
+    msg.SetObject();
+    msg.AddMember("command", "ack", json::g_CrtAllocator);
+    msg.AddMember("id", json::ToValue(id), json::g_CrtAllocator);
     EmitMessage(msg, os);
 }
 
-void EmitFail(const std::string &id, std::ostream &os) {
-    Value msg;
-    msg["command"] = "fail";
-    msg["id"] = id;
+void EmitFail(const string &id, ostream &os) {
+    json::Value msg;
+    msg.SetObject();
+    msg.AddMember("command", "fail", json::g_CrtAllocator);
+    msg.AddMember("id", json::ToValue(id), json::g_CrtAllocator);
     EmitMessage(msg, os);
 }
 
-void EmitTuple(
-        const std::string &stream,
-        const Tuple *anchor,
-        const Tuple &output,
-        std::ostream &os
-) {
-    Value msg;
-    msg["command"] = "emit";
-    msg["stream"] = stream;
+void EmitTuple(const string &stream, const Tuple *anchor, Values *output, ostream &os) {
+    json::Value msg;
+    msg.SetObject();
+    msg.AddMember("command", "emit", json::g_CrtAllocator);
+    msg.AddMember("stream", json::ToValue(stream), json::g_CrtAllocator);
     if (anchor != nullptr) {
-        Value anchor_ids;
-        anchor_ids.append(anchor->id());
-        msg["anchors"] = anchor_ids;
+        json::Value anchor_ids;
+        anchor_ids.SetArray();
+        anchor_ids.PushBack(json::ToValue(anchor->id()), json::g_CrtAllocator);
+        msg.AddMember("anchors", anchor_ids, json::g_CrtAllocator);
     }
-    msg["tuple"] = output.values();
+    // Currently, Values is the same as json::Value
+    msg.AddMember("tuple", *output, json::g_CrtAllocator);
     EmitMessage(msg, os);
 }
 
-void EmitTuple(
-        const std::string &stream,
-        const std::vector<const Tuple*> &anchors,
-        const Tuple &output,
-        std::ostream &os
-) {
-    Value msg;
-    msg["command"] = "emit";
-    msg["stream"] = stream;
+void EmitTuple(const string &stream, const vector<const Tuple*> &anchors, Values *output, ostream &os) {
+    json::Value msg;
+    msg.SetObject();
+    msg.AddMember("command", "emit", json::g_CrtAllocator);
+    msg.AddMember("stream", json::ToValue(stream), json::g_CrtAllocator);
     if (!anchors.empty()) {
-        Value anchor_ids;
+        json::Value anchor_ids;
+        anchor_ids.SetArray();
         for (auto &tuple: anchors) {
-            anchor_ids.append(Value(tuple->id()));
+            anchor_ids.PushBack(json::ToValue(tuple->id()), json::g_CrtAllocator);
         }
-        msg["anchors"] = anchor_ids;
+        msg.AddMember("anchors", anchor_ids, json::g_CrtAllocator);
     }
-    msg["tuple"] = output.values();
+    msg.AddMember("tuple", *output, json::g_CrtAllocator);
     EmitMessage(msg, os);
 }
 
-void EmitLog(const std::string &log, std::ostream &os) {
-    Value msg;
-    msg["command"] = "log";
-    msg["msg"] = log;
+void EmitLog(const string &log, ostream &os) {
+    json::Value msg;
+    msg.SetObject();
+    msg.AddMember("command", "log", json::g_CrtAllocator);
+    msg.AddMember("msg", json::ToValue(log), json::g_CrtAllocator);
     EmitMessage(msg, os);
 }
 
 TopologyContext *InitialHandshake(istream &is, ostream &os) {
-    Value message = NextMessage(is);
-    unique_ptr<TopologyContext> tc{ ParseTopologyContext(message) };
+    json::Value message = NextMessage(is);
+    unique_ptr<TopologyContext> tc{ ParseTopologyContext(&message) };
     pid_t current_pid = getpid();
 
     // create pid file
@@ -150,41 +161,50 @@ TopologyContext *InitialHandshake(istream &is, ostream &os) {
     ofstream pid_file(pid_file_path.str());
 
     // send pid to os
-    Value pid_message;
-    pid_message["pid"] = current_pid;
+    json::Value pid_message;
+    pid_message.SetObject();
+    pid_message.AddMember("pid", json::Value(current_pid), json::g_CrtAllocator);
     EmitMessage(pid_message, os);
 
     return tc.release();
 }
 
-TopologyContext *ParseTopologyContext(Value &root) {
+TopologyContext *ParseTopologyContext(json::Value *root) {
     // parse context
-    Value context = root["context"];
-    int taskid = context["taskid"].asInt();
-    Value &components = context["task->component"];
+    json::Value &rootRef = *root;
+    json::Value &context = rootRef["context"];
+    int taskid = context["taskid"].GetInt();
+    json::Value &components = context["task->component"];
     map<int, string> task_2_component;
-    for (auto iter = components.begin(); iter != components.end(); ++iter) {
-        int id = atoi(iter.name().c_str());
-        task_2_component[id] = iter->asString();
+    for (auto iter = components.MemberBegin(); iter != components.MemberEnd(); ++iter) {
+        int id = atoi(iter->name.GetString());
+        task_2_component[id] = iter->value.GetString();
     }
 
     // parse pidDir
-    string pid_dir = root["pidDir"].asString();
+    string pid_dir = rootRef["pidDir"].GetString();
 
     // parse config
-    Value config = root["conf"];
+    json::Value &config = rootRef["conf"];
 
-    return new TopologyContext(taskid, &task_2_component, &pid_dir, &config);
+    return new TopologyContext(taskid, move(task_2_component), move(pid_dir), move(config));
 }
 
-Tuple *ParseTuple(Value &root) {
-    return new Tuple(
-            root["id"].asString(),
-            root["comp"].asString(),
-            root["stream"].asString(),
-            root["task"].asInt(),
-            root["tuple"]
-    );
+Tuple *ParseTuple(json::Value *root) {
+    json::Value &rootRef = *root;
+
+    json::Value &idValue = rootRef["id"];
+    string id{ idValue.GetString(), idValue.GetStringLength() };
+
+    json::Value &compValue = rootRef["comp"];
+    string comp{ compValue.IsNull()? "" : string(compValue.GetString(), compValue.GetStringLength()) };
+
+    json::Value &streamValue = rootRef["stream"];
+    string stream{ streamValue.GetString(), streamValue.GetStringLength() };
+
+    int task = rootRef["task"].GetInt();
+
+    return new Tuple(move(id), move(comp), move(stream), task, move(rootRef["tuple"]));
 }
 
 }}}  // namespace storm::internal::protocol

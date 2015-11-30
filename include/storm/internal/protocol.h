@@ -1,42 +1,49 @@
-// Copyright (c) 2015 ShuMei Inc. All rights reserved.
+// Copyright (c) 2015 SHUMEI Inc. All rights reserved.
 // Authors: Liang Kun <liangkun@ishumei.com>.
-#ifndef CCSTORM_PROTOCOL_H
-#define CCSTORM_PROTOCOL_H
+
+#ifndef STORM_PROTOCOL_H
+#define STORM_PROTOCOL_H
 
 #include <iostream>
 #include <string>
 #include <vector>
-#include "json/json.h"
+#include "storm/internal/json.h"
 #include "storm/topology-context.h"
 #include "storm/tuple.h"
 
 namespace storm { namespace internal { namespace protocol {
 
-// Read and parse an input json message
-Json::Value NextMessage(std::istream &is);
+// Following functions implements storm's multi-lang protocol.
+//
+// See (multi-lang protocol)[https://storm.apache.org/documentation/Multilang-protocol.html] for
+// details.
 
-void EmitMessage(const Json::Value &root, std::ostream &os);
+// Read and parse next input json message.
+json::Value NextMessage(std::istream &is);
 
+// Emit a json message to parent process, with the "end" line.
+void EmitMessage(const json::Value &root, std::ostream &os);
+
+// Emit "sync" message.
 void EmitSync(std::ostream &os);
 
+// Emit "ack" message.
 void EmitAck(const std::string &id, std::ostream &os);
 
+// Emit "fail" message.
 void EmitFail(const std::string &id, std::ostream &os);
 
-void EmitTuple(
-        const std::string &stream,
-        const Tuple *anchor,
-        const Tuple &output,
-        std::ostream &os
-);
+// Emit a tuple(send "emit" message), data of output will be stolen.
+void EmitTuple(const std::string &stream, const Tuple *anchor, Values *output, std::ostream &os);
 
+// Emit a tuple(send "emit" message), data of output will be stolen.
 void EmitTuple(
         const std::string &stream,
         const std::vector<const Tuple*> &anchors,
-        const Tuple &output,
-        std::ostream &os
-);
+        Values *output,
+        std::ostream &os);
 
+// Emit "log" message.
 void EmitLog(const std::string &log, std::ostream &os);
 
 // Finish initial handshake between ShellComponent and C++ Component.
@@ -44,11 +51,13 @@ void EmitLog(const std::string &log, std::ostream &os);
 TopologyContext *InitialHandshake(std::istream &is, std::ostream &os);
 
 // Caller will have the ownership of the result TopologyContext.
-TopologyContext *ParseTopologyContext(Json::Value &root);
+// Note: data in root json object will be stolen.
+TopologyContext *ParseTopologyContext(json::Value *root);
 
 // Caller will have the ownership of the result Tuple.
-Tuple *ParseTuple(Json::Value &root);
+// Note: data in *root json object will be stolen.
+Tuple *ParseTuple(json::Value *root);
 
 }}}  // namespace storm::internal::protocol
 
-#endif //CCSTORM_PROTOCOL_H
+#endif // STORM_PROTOCOL_H

@@ -15,7 +15,7 @@ set(LIB_VERSION_STRING "${LIB_MAJOR_VERSION}.${LIB_MINOR_VERSION}.${LIB_PATCH_VE
 SET(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
 option(CCSTORM_BUILD_TESTS "Build ccstorm unittests." ON)
 option(STORM_PROTOCOL_DEBUG_ENABLE "Log every input/output message." ON)
-option(STORM_PROTOCOL_DEBUG "\"/Users/liangkun\"")
+set(STORM_PROTOCOL_DEBUG "/tmp")
 
 if (STORM_PROTOCOL_DEBUG_ENABLE)
     add_definitions(-DSTORM_PROTOCOL_DEBUG="${STORM_PROTOCOL_DEBUG}")
