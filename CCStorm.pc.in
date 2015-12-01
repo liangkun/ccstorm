@@ -1,7 +1,0 @@
-includedir=@INCLUDE_INSTALL_DIR@
-
-Name: @PROJECT_NAME@
-Description: C++ DSL of Storm(the real time processing framework).
-Version: @LIB_VERSION_STRING@
-URL: https://github.com/liangkun/ccstorm.git
-Cflags: -I${includedir}

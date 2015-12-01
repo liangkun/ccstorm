@@ -4,7 +4,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.3)
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
-PROJECT(CCStorm CXX)
+PROJECT(Storm CXX)
 
 set(LIB_MAJOR_VERSION "0")
 set(LIB_MINOR_VERSION "9")
@@ -13,7 +13,7 @@ set(LIB_VERSION_STRING "${LIB_MAJOR_VERSION}.${LIB_MINOR_VERSION}.${LIB_PATCH_VE
 
 # Compile in release with debug info mode by default
 SET(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
-option(CCSTORM_BUILD_TESTS "Build ccstorm unittests." ON)
+option(STORM_BUILD_TESTS "Build storm unittests." ON)
 option(STORM_PROTOCOL_DEBUG_ENABLE "Log every input/output message." OFF)
 set(STORM_PROTOCOL_DEBUG "/tmp")
 
@@ -48,7 +48,7 @@ add_library(storm ${THRIFT_CC_FILES_LIST} ${SOURCE} ${LIBS})
 add_executable(adder ${CMAKE_CURRENT_SOURCE_DIR}/bolts/adder.cc)
 target_link_libraries(adder storm)
 
-if(CCSTORM_BUILD_TESTS)
+if(STORM_BUILD_TESTS)
     enable_testing()
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/googletest/googletest)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/googletest/googletest/include)
@@ -56,46 +56,3 @@ if(CCSTORM_BUILD_TESTS)
     target_link_libraries(run_unit_tests storm gtest gtest_main)
     add_test(run_unit_tests run_unit_tests)
 endif()
-
-SET(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Headers install directory")
-SET(LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE STRING "Library install directory")
-SET(DOC_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/share/doc/${PROJECT_NAME}" CACHE PATH "Document install directory")
-
-IF(UNIX OR CYGWIN)
-    SET(_CMAKE_INSTALL_DIR "${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME}")
-ELSEIF(WIN32)
-    SET(_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/cmake")
-ENDIF()
-SET(CMAKE_INSTALL_DIR "${_CMAKE_INSTALL_DIR}" CACHE PATH "Cmake files install directory")
-
-# pkg-config
-IF (UNIX OR CYGWIN)
-  CONFIGURE_FILE (${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.pc.in
-                  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc
-                  @ONLY)
-  INSTALL (FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc
-      DESTINATION "${LIB_INSTALL_DIR}/pkgconfig"
-      COMPONENT pkgconfig)
-ENDIF()
-
-install(DIRECTORY include/storm
-    DESTINATION "${INCLUDE_INSTALL_DIR}"
-    COMPONENT dev)
-
-# ===============================
-# Provide config and version files to be used by other applications
-# ===============================
-export(PACKAGE ${PROJECT_NAME})
-
-# cmake-modules
-CONFIGURE_FILE(${PROJECT_NAME}Config.cmake.in
-    ${PROJECT_NAME}Config.cmake
-    @ONLY)
-CONFIGURE_FILE(${PROJECT_NAME}ConfigVersion.cmake.in
-    ${PROJECT_NAME}ConfigVersion.cmake
-    @ONLY)
-INSTALL(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-    DESTINATION "${CMAKE_INSTALL_DIR}"
-    COMPONENT dev)
