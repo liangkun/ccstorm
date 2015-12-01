@@ -6,6 +6,7 @@
 
 #include <map>
 #include <string>
+#include <utility>
 #include "storm/values.h"
 
 namespace storm {
@@ -18,9 +19,10 @@ public:
             std::map<int, std::string> &&task_2_component,
             std::string &&pid_dir,
             Values &&config
-    ): _task_id(task_id), _task_2_component(task_2_component), _pid_dir(pid_dir) {
-        _config = config;
-    }
+    ): _task_id(std::move(task_id)),
+       _task_2_component(std::move(task_2_component)),
+       _pid_dir(std::move(pid_dir)),
+       _config(std::move(config)) {}
 
     int task_id() const { return _task_id; }
     const std::string &pid_dir() const { return _pid_dir; }

@@ -440,8 +440,6 @@ public:
     GenericValue(GenericValue&& rhs) RAPIDJSON_NOEXCEPT : data_(rhs.data_), flags_(rhs.flags_) {
         rhs.flags_ = kNullFlag; // give up contents
     }
-#else
-#error "RAPIDJSON_HAS_CXX11_RVALUE_REFS not defined"
 #endif
 
 private:

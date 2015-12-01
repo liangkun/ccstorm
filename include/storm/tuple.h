@@ -5,6 +5,7 @@
 #define STORM_TUPLE_H
 
 #include <string>
+#include <utility>
 #include "storm/values.h"
 
 namespace storm {
@@ -16,18 +17,11 @@ public:
           std::string &&stream,
           int task,
           Values &&values
-    ): _id(id), _component(component), _stream(stream), _task(task) {
-        _values = values;
-    }
-
-    Tuple(const std::string &id,
-          const std::string &component,
-          const std::string &stream,
-          int task,
-          Values &&values
-    ): _id(id), _component(component), _stream(stream), _task(task) {
-        _values = values;
-    }
+    ): _id(std::move(id)),
+       _component(std::move(component)),
+       _stream(std::move(stream)),
+       _task(task),
+       _values(std::move(values)) {}
 
     Tuple(Values &&values): _id("0"), _component(""), _stream("default"), _task(0) {
         _values = values;
