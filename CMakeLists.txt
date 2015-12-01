@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Shumei Inc. All Rights Reserved.
+# Copyright (c) 2015 SHUMEI Inc. All Rights Reserved.
 # Authors: Liang Kun <liangkun@ishumei.com>
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.3)
