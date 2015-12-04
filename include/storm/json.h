@@ -11,15 +11,15 @@
 #include "rapidjson/error/error.h"
 #include "rapidjson/rapidjson.h"
 
-namespace storm { namespace internal { namespace json {
+namespace storm { namespace json {
 
 // Redefine default allocator to rapidjson::CrtAllocator instead of rapidjson::MemoryPoolAllocator.
 using CrtAllocator = rapidjson::CrtAllocator;
 using Value = rapidjson::GenericValue<rapidjson::UTF8<>, CrtAllocator>;
 using Document = rapidjson::GenericDocument<rapidjson::UTF8<>, CrtAllocator>;
 
-// Provide a global rapidjson::CrtAllocator instance to use.
-extern CrtAllocator g_CrtAllocator;
+// Provide a global rapidjson::CrtAllocator instance to use by default.
+extern CrtAllocator g_Allocator;
 
 // Json writer.
 using StringBuffer = rapidjson::StringBuffer;
@@ -29,9 +29,9 @@ using Writer = rapidjson::Writer<StringBuffer>;
 using GetParseErrorFunc = rapidjson::GetParseErrorFunc;
 extern GetParseErrorFunc GetParseError;
 
-// Convert a std::string into Value without copying;
-static inline Value ToValue(const std::string &str) { return Value(str.c_str(), str.size()); }
+// Convert a std::string into Value without copying
+inline Value ToValue(const std::string &str) { return Value(str.c_str(), str.size()); }
 
-}}} // namespace storm::internal::json
+}} // namespace storm::json
 
 #endif // STORM_JSON_H

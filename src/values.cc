@@ -5,6 +5,6 @@
 
 namespace storm {
 
-CrtAllocator &g_CrtAllocator(internal::json::g_CrtAllocator);
+CrtAllocator &g_Allocator(json::g_Allocator);
 
 }  // namespace storm

@@ -26,6 +26,7 @@ public:
 
     std::istream &is() { return *_is; }
     std::ostream &os() { return *_os; }
+    const TopologyContext &tc() { return *_tc; }
 
 protected:
     void Log(const std::string &msg) { internal::protocol::EmitLog(msg, *_os); }

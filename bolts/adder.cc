@@ -19,8 +19,8 @@ public:
         result.SetArray();
         stringstream ss;
         ss << tuple->values()[0].GetInt() + tuple->values()[1].GetInt();
-        result.PushBack(ToValue(ss.str()), g_CrtAllocator);
-        result.PushBack(tuple->mutable_values()[2], g_CrtAllocator);
+        result.PushBack(ToValue(ss.str()), g_Allocator);
+        result.PushBack(tuple->mutable_values()[2], g_Allocator);
         oc().Emit("default", tuple, &result);
         oc().Ack(tuple);
     }

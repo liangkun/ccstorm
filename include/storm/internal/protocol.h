@@ -7,7 +7,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "storm/internal/json.h"
+#include "storm/json.h"
 #include "storm/topology-context.h"
 #include "storm/tuple.h"
 

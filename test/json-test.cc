@@ -2,11 +2,11 @@
 // Authors: Liang Kun <liangkun@ishumei.com>.
 
 #include <string>
-#include "storm/internal/json.h"
+#include "storm/json.h"
 #include "gtest/gtest.h"
 
 using std::string;
-using namespace storm::internal::json;
+using namespace storm::json;
 
 TEST(RapidJsonTest, ParsingWithGlobalCrtAllocator) {
     const string json { "{\n"
@@ -18,7 +18,7 @@ TEST(RapidJsonTest, ParsingWithGlobalCrtAllocator) {
                                 "    \"pi\": 3.1416,\n"
                                 "    \"a\": [1, 2, 3, 4]\n"
                         "}" };
-    Document document(&g_CrtAllocator);
+    Document document(&g_Allocator);
     document.Parse(json.c_str());
     ASSERT_FALSE(document.HasParseError());
     ASSERT_STREQ("world", document["hello"].GetString());

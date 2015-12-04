@@ -6,7 +6,7 @@
 
 #include <iostream>
 #include <memory>
-#include "storm/internal/json.h"
+#include "storm/json.h"
 #include "storm/component.h"
 #include "storm/output-collector.h"
 
@@ -23,7 +23,7 @@ public:
         Prepare();
 
         while(is().good()) {
-            internal::json::Value message { internal::protocol::NextMessage(is()) };
+            json::Value message { internal::protocol::NextMessage(is()) };
             if (message.IsArray()) {
                 continue;  // ignore receiving taskids for now
             }
