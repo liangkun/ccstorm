@@ -19,7 +19,7 @@ using Value = rapidjson::GenericValue<rapidjson::UTF8<>, CrtAllocator>;
 using Document = rapidjson::GenericDocument<rapidjson::UTF8<>, CrtAllocator>;
 
 // Provide a global rapidjson::CrtAllocator instance to use by default.
-extern CrtAllocator g_Allocator;
+extern CrtAllocator g_allocator;
 
 // Json writer.
 using StringBuffer = rapidjson::StringBuffer;

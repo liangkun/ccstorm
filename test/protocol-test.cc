@@ -23,7 +23,7 @@ using storm::TopologyContext;
 using storm::ProtocolException;
 using storm::Value;
 using storm::Values;
-using storm::g_Allocator;
+using storm::g_allocator;
 using storm::Tuple;
 using namespace storm::internal::protocol;
 namespace json = storm::json;
@@ -53,15 +53,15 @@ TEST(ProtocolTest, NextMessage_Illegal) {
 TEST(ProtocolTest, EmitMessage) {
     json::Value root;
     root.SetObject();
-    root.AddMember("count", json::Value(1), json::g_Allocator);
+    root.AddMember("count", json::Value(1), json::g_allocator);
 
     stringstream ss;
     EmitMessage(root, ss);
     ASSERT_EQ(root, NextMessage(ss));
 
-    root.AddMember("object", json::Value(), json::g_Allocator);
+    root.AddMember("object", json::Value(), json::g_allocator);
     root["object"].SetObject();
-    root["object"].AddMember("message", "hello, world", json::g_Allocator);
+    root["object"].AddMember("message", "hello, world", json::g_allocator);
     EmitMessage(root, ss);
     ASSERT_EQ(root, NextMessage(ss));
 }
@@ -96,12 +96,12 @@ TEST(ProtocolTest, EmitTuple_SingleAnchor) {
     stringstream ss;
     Values values;
     values.SetArray();
-    values.PushBack("hello", g_Allocator);
-    values.PushBack(Value(1), g_Allocator);
-    values.PushBack("world", g_Allocator);
+    values.PushBack("hello", g_allocator);
+    values.PushBack(Value(1), g_allocator);
+    values.PushBack("world", g_allocator);
 
     // no anchors
-    Values output0(values, g_Allocator);
+    Values output0(values, g_allocator);
     EmitTuple("mystream", nullptr, &output0, ss);
     json::Value msg_no_anchor = NextMessage(ss);
     ASSERT_STREQ("emit", msg_no_anchor["command"].GetString());
@@ -110,7 +110,7 @@ TEST(ProtocolTest, EmitTuple_SingleAnchor) {
     ASSERT_EQ(values, msg_no_anchor["tuple"]);
 
     // with anchors
-    Values output1(values, g_Allocator);
+    Values output1(values, g_allocator);
     unique_ptr<Tuple> an { new Tuple("12330", "an1", "default", 1, Values()) };
     EmitTuple("mystream", an.get(), &output1, ss);
     json::Value msg_with_anchor = NextMessage(ss);
@@ -124,12 +124,12 @@ TEST(ProtocolTest, EmitTuple_MultiAnchor) {
     stringstream ss;
     Values values;
     values.SetArray();
-    values.PushBack("hello", g_Allocator);
-    values.PushBack(Value(1), g_Allocator);
-    values.PushBack("world", g_Allocator);
+    values.PushBack("hello", g_allocator);
+    values.PushBack(Value(1), g_allocator);
+    values.PushBack("world", g_allocator);
 
     // no anchors
-    Values output0(values, g_Allocator);
+    Values output0(values, g_allocator);
     vector<const Tuple*> anchors;
     EmitTuple("mystream", anchors, &output0, ss);
     json::Value msg_no_anchor = NextMessage(ss);
@@ -139,7 +139,7 @@ TEST(ProtocolTest, EmitTuple_MultiAnchor) {
     ASSERT_EQ(values, msg_no_anchor["tuple"]);
 
     // with anchors
-    Values output1(values, g_Allocator);
+    Values output1(values, g_allocator);
     unique_ptr<Tuple> an0 { new Tuple("12330", "an1", "default", 1, Values()) };
     unique_ptr<Tuple> an1 { new Tuple("12331", "an1", "default", 1, Values()) };
     unique_ptr<Tuple> an2 { new Tuple("12332", "an1", "default", 1, Values()) };
@@ -178,7 +178,7 @@ TEST(ProtocolTest, ParseTopologyContext_Legal) {
                 "\"taskid\":3},"
             "\"conf\":{\"storm.id\":\"test-topology\"}}"
     };
-    json::Document document(&json::g_Allocator);
+    json::Document document(&json::g_allocator);
     document.Parse(legal.c_str());
     ASSERT_FALSE(document.HasParseError());
 

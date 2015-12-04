@@ -6,7 +6,7 @@
 
 namespace storm { namespace json {
 
-CrtAllocator g_Allocator;
+CrtAllocator g_allocator;
 GetParseErrorFunc GetParseError = rapidjson::GetParseError_En;
 
 }}  // namespace storm::internal::json

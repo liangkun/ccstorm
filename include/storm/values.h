@@ -16,7 +16,7 @@ using Values = json::Value;
 
 // Default value allocator to use.
 using CrtAllocator = json::CrtAllocator;
-extern CrtAllocator &g_Allocator;
+extern CrtAllocator &g_allocator;
 
 // Convert a std::string into Value without copying
 using json::ToValue;

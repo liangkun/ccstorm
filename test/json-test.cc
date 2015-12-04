@@ -18,7 +18,7 @@ TEST(RapidJsonTest, ParsingWithGlobalCrtAllocator) {
                                 "    \"pi\": 3.1416,\n"
                                 "    \"a\": [1, 2, 3, 4]\n"
                         "}" };
-    Document document(&g_Allocator);
+    Document document(&g_allocator);
     document.Parse(json.c_str());
     ASSERT_FALSE(document.HasParseError());
     ASSERT_STREQ("world", document["hello"].GetString());

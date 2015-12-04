@@ -51,7 +51,7 @@ json::Value NextMessage(istream &is) {
     ofs << jmessage << endl;
 #endif
 
-    json::Document document(&json::g_Allocator);
+    json::Document document(&json::g_allocator);
     document.Parse(jmessage.c_str());
     if (document.HasParseError()) {
         stringstream error;
@@ -69,7 +69,7 @@ json::Value NextMessage(istream &is) {
 
 void EmitMessage(const json::Value &root, ostream &os) {
     json::StringBuffer buffer;
-    json::Writer writer(buffer, &json::g_Allocator);
+    json::Writer writer(buffer, &json::g_allocator);
     root.Accept(writer);
     os << buffer.GetString() << "\nend" << endl;
 
@@ -88,64 +88,64 @@ void EmitMessage(const json::Value &root, ostream &os) {
 void EmitSync(ostream &os) {
     json::Value msg;
     msg.SetObject();
-    msg.AddMember("command", "sync", json::g_Allocator);
+    msg.AddMember("command", "sync", json::g_allocator);
     EmitMessage(msg, os);
 }
 
 void EmitAck(const string &id, ostream &os) {
     json::Value msg;
     msg.SetObject();
-    msg.AddMember("command", "ack", json::g_Allocator);
-    msg.AddMember("id", json::ToValue(id), json::g_Allocator);
+    msg.AddMember("command", "ack", json::g_allocator);
+    msg.AddMember("id", json::ToValue(id), json::g_allocator);
     EmitMessage(msg, os);
 }
 
 void EmitFail(const string &id, ostream &os) {
     json::Value msg;
     msg.SetObject();
-    msg.AddMember("command", "fail", json::g_Allocator);
-    msg.AddMember("id", json::ToValue(id), json::g_Allocator);
+    msg.AddMember("command", "fail", json::g_allocator);
+    msg.AddMember("id", json::ToValue(id), json::g_allocator);
     EmitMessage(msg, os);
 }
 
 void EmitTuple(const string &stream, const Tuple *anchor, Values *output, ostream &os) {
     json::Value msg;
     msg.SetObject();
-    msg.AddMember("command", "emit", json::g_Allocator);
-    msg.AddMember("stream", json::ToValue(stream), json::g_Allocator);
+    msg.AddMember("command", "emit", json::g_allocator);
+    msg.AddMember("stream", json::ToValue(stream), json::g_allocator);
     if (anchor != nullptr) {
         json::Value anchor_ids;
         anchor_ids.SetArray();
-        anchor_ids.PushBack(json::ToValue(anchor->id()), json::g_Allocator);
-        msg.AddMember("anchors", anchor_ids, json::g_Allocator);
+        anchor_ids.PushBack(json::ToValue(anchor->id()), json::g_allocator);
+        msg.AddMember("anchors", anchor_ids, json::g_allocator);
     }
     // Currently, Values is the same as json::Value
-    msg.AddMember("tuple", *output, json::g_Allocator);
+    msg.AddMember("tuple", *output, json::g_allocator);
     EmitMessage(msg, os);
 }
 
 void EmitTuple(const string &stream, const vector<const Tuple*> &anchors, Values *output, ostream &os) {
     json::Value msg;
     msg.SetObject();
-    msg.AddMember("command", "emit", json::g_Allocator);
-    msg.AddMember("stream", json::ToValue(stream), json::g_Allocator);
+    msg.AddMember("command", "emit", json::g_allocator);
+    msg.AddMember("stream", json::ToValue(stream), json::g_allocator);
     if (!anchors.empty()) {
         json::Value anchor_ids;
         anchor_ids.SetArray();
         for (auto &tuple: anchors) {
-            anchor_ids.PushBack(json::ToValue(tuple->id()), json::g_Allocator);
+            anchor_ids.PushBack(json::ToValue(tuple->id()), json::g_allocator);
         }
-        msg.AddMember("anchors", anchor_ids, json::g_Allocator);
+        msg.AddMember("anchors", anchor_ids, json::g_allocator);
     }
-    msg.AddMember("tuple", *output, json::g_Allocator);
+    msg.AddMember("tuple", *output, json::g_allocator);
     EmitMessage(msg, os);
 }
 
 void EmitLog(const string &log, ostream &os) {
     json::Value msg;
     msg.SetObject();
-    msg.AddMember("command", "log", json::g_Allocator);
-    msg.AddMember("msg", json::ToValue(log), json::g_Allocator);
+    msg.AddMember("command", "log", json::g_allocator);
+    msg.AddMember("msg", json::ToValue(log), json::g_allocator);
     EmitMessage(msg, os);
 }
 
@@ -162,7 +162,7 @@ TopologyContext *InitialHandshake(istream &is, ostream &os) {
     // send pid to os
     json::Value pid_message;
     pid_message.SetObject();
-    pid_message.AddMember("pid", json::Value(current_pid), json::g_Allocator);
+    pid_message.AddMember("pid", json::Value(current_pid), json::g_allocator);
     EmitMessage(pid_message, os);
 
     return tc.release();
