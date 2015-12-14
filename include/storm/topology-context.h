@@ -28,7 +28,7 @@ public:
     const std::string &pid_dir() const { return _pid_dir; }
     const std::map<int, std::string> task_2_component() { return _task_2_component; }
     const std::string &component() const { return _task_2_component.at(_task_id); }
-    const Values &config() { return _config; }
+    const Values &config() const { return _config; }
 
 private:
     const int _task_id;
