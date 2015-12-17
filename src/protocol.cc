@@ -2,6 +2,7 @@
 // Authors: Liang Kun <liangkun@ishumei.com>.
 
 #include "storm/internal/protocol.h"
+#include <atomic>
 #include <unistd.h>
 #include <cstdlib>
 #include <fstream>
@@ -14,8 +15,10 @@
 #include <vector>
 #include "storm/json.h"
 #include "storm/exception.h"
+#include "storm/spin-lock.h"
 
 using std::atoi;
+using std::atomic_flag;
 using std::getline;
 using std::istream;
 using std::ostream;
@@ -28,6 +31,12 @@ using std::move;
 using std::string;
 using std::unique_ptr;
 using std::vector;
+
+namespace {
+
+atomic_flag g_EmittingMessage = ATOMIC_FLAG_INIT;
+
+}  // anonymous namespace
 
 namespace storm { namespace internal { namespace protocol {
 
@@ -71,18 +80,23 @@ void EmitMessage(const json::Value &root, ostream &os) {
     json::StringBuffer buffer;
     json::Writer writer(buffer, &json::g_allocator);
     root.Accept(writer);
-    os << buffer.GetString() << "\nend" << endl;
+    const char *message = buffer.GetString();
+
+    {
+        spin_lock lock(&g_EmittingMessage);
+        os << message << "\nend" << endl;
 
 #ifdef STORM_PROTOCOL_DEBUG
-    ofstream ofs(STORM_PROTOCOL_DEBUG "/storm-protocol-outputs", ios::app);
-    ofs << buffer.GetString() << endl;
+        ofstream ofs(STORM_PROTOCOL_DEBUG "/storm-protocol-outputs", ios::app);
+        ofs << buffer.GetString() << endl;
 #endif
 
-    if (os.bad()) {
-        stringstream err;
-        err << "failed to send message: " << buffer.GetString();
-        throw ProtocolException(err.str());
-    }
+        if (os.bad()) {
+            stringstream err;
+            err << "failed to send message: " << message;
+            throw ProtocolException(err.str());
+        }
+    }  // spin_lock
 }
 
 void EmitSync(ostream &os) {
