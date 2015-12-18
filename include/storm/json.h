@@ -32,6 +32,17 @@ extern GetParseErrorFunc GetParseError;
 // Convert a std::string into Value without copying
 inline Value ToValue(const std::string &str) { return Value(str.c_str(), str.size()); }
 
+// Check if @param path is an array and only contains string and integer elements, throws
+// runtime_error otherwise.
+void CheckPath(const Value &path);
+
+// Encode a json path into a string, throws runtime_error if @param path is illegal.
+std::string PathToString(const Value &path);
+
+// Get the value at the @param path in @param root. Return null if the path does not exist in
+// @param root. throws runtime_error if @param path is illegal.
+Value *GetValue(Value &root, const Value &path);
+
 }} // namespace storm::json
 
 #endif // STORM_JSON_H
