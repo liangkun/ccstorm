@@ -46,6 +46,10 @@ string PathToString(const Value &path) {
     return ss.str();
 }
 
+const Value *GetValue(const Value &root, const Value &path) {
+    return GetValue(const_cast<Value &>(root), path);
+}
+
 Value *GetValue(Value &root, const Value &path) {
     if (!path.IsArray()) throw runtime_error("json path is not an array");
 

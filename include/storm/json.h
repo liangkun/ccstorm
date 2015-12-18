@@ -41,6 +41,7 @@ std::string PathToString(const Value &path);
 
 // Get the value at the @param path in @param root. Return null if the path does not exist in
 // @param root. throws runtime_error if @param path is illegal.
+const Value *GetValue(const Value &root, const Value &path);
 Value *GetValue(Value &root, const Value &path);
 
 }} // namespace storm::json
