@@ -4,6 +4,7 @@
 #ifndef STORM_OUTPUT_COLLECTOR_H
 #define STORM_OUTPUT_COLLECTOR_H
 
+#include <memory>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -16,16 +17,16 @@ class OutputCollector {
 public:
     OutputCollector(std::ostream &os): _os(os) {}
 
-    void Ack(const Tuple *input) {
+    void Ack(const std::unique_ptr<Tuple> &input) {
         internal::protocol::EmitAck(input->id(), _os);
     }
 
-    void Fail(const Tuple *input) {
+    void Fail(const std::unique_ptr<Tuple> &input) {
         internal::protocol::EmitFail(input->id(), _os);
     }
 
-    void Emit(const std::string &stream, const Tuple *anchor, Values *output) {
-        internal::protocol::EmitTuple(stream, anchor, output, _os);
+    void Emit(const std::string &stream, const std::unique_ptr<Tuple> &anchor, Values *output) {
+        internal::protocol::EmitTuple(stream, anchor.get(), output, _os);
     }
 
     void Emit(const std::string &stream, const std::vector<const Tuple*> &anchors, Values *output) {

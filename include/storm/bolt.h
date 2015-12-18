@@ -31,7 +31,7 @@ public:
             if (_tuple->stream() == "__heartbeat") {
                 internal::protocol::EmitSync(os());
             } else {
-                Execute(_tuple.get());
+                Execute(_tuple);
             }
         }
     }
@@ -42,7 +42,7 @@ protected:
     virtual void Prepare() {}
 
     // Execute() can do anything to input tuple.
-    virtual void Execute(Tuple *input) {}
+    virtual void Execute(std::unique_ptr<Tuple> &input) {}
 
 private:
     std::unique_ptr<OutputCollector> _oc;

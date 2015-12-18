@@ -14,7 +14,7 @@ namespace {
 
 class Adder: public Bolt {
 public:
-    virtual void Execute(Tuple *tuple) {
+    virtual void Execute(unique_ptr<Tuple> &tuple) {
         Values result;
         result.SetArray();
         stringstream ss;
