@@ -48,6 +48,9 @@ add_library(storm ${THRIFT_CC_FILES_LIST} ${SOURCE} ${LIBS})
 add_executable(adder ${CMAKE_CURRENT_SOURCE_DIR}/bolts/adder.cc)
 target_link_libraries(adder storm)
 
+add_executable(drpc ${CMAKE_CURRENT_SOURCE_DIR}/tools/drpc.cc)
+target_link_libraries(drpc storm ${LIBS})
+
 if(STORM_BUILD_TESTS)
     enable_testing()
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/googletest/googletest)
