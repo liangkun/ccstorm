@@ -36,9 +36,6 @@ file(GLOB_RECURSE TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cc")
 find_package(Thrift REQUIRED)
 include_directories(SYSTEM ${THRIFT_INCLUDE_DIR})
 set(LIBS ${LIBS} ${THRIFT_LIBRARIES})
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(LIBS ${LIBS} -lpthread -lrt)
-endif()
 
 thrift_gen_cpp(${CMAKE_CURRENT_SOURCE_DIR}/src/storm.thrift THRIFT_CC_FILES_LIST THRIFT_GEN_INCLUDE_DIR)
 include_directories(${THRIFT_GEN_INCLUDE_DIR})
@@ -47,11 +44,16 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_library(storm ${THRIFT_CC_FILES_LIST} ${SOURCE} ${LIBS})
 
+set(STORM_LIBS storm ${LIBS})
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    set(STORM_LIBS ${STORM_LIBS} -lpthread -lrt)
+endif()
+
 add_executable(adder ${CMAKE_CURRENT_SOURCE_DIR}/bolts/adder.cc)
-target_link_libraries(adder storm)
+target_link_libraries(adder ${STORM_LIBS})
 
 add_executable(drpc ${CMAKE_CURRENT_SOURCE_DIR}/tools/drpc.cc)
-target_link_libraries(drpc storm ${LIBS})
+target_link_libraries(drpc ${STORM_LIBS})
 
 if(STORM_BUILD_TESTS)
     enable_testing()
