@@ -14,6 +14,7 @@ using std::atoi;
 using std::cerr;
 using std::cout;
 using std::endl;
+using std::getenv;
 using std::string;
 using boost::shared_ptr;
 using apache::thrift::TException;
@@ -38,7 +39,14 @@ int main(int argc, const char **argv) {
         server = server.substr(0, colon);
     }
 
+    const char *conn_timeout = getenv("DRPC_CONN_TIMEOUT");
+    const char *send_timeout = getenv("DRPC_SEND_TIMEOUT");
+    const char *recv_timeout = getenv("DRPC_RECV_TIMEOUT");
+
     shared_ptr<TSocket> socket(new TSocket(server, port));
+    socket->setConnTimeout(conn_timeout ? atoi(conn_timeout) : 1000);
+    socket->setSendTimeout(send_timeout ? atoi(send_timeout) : 1000);
+    socket->setRecvTimeout(recv_timeout ? atoi(recv_timeout) : 1000);
     shared_ptr<TFramedTransport> transport(new TFramedTransport(socket));
     shared_ptr<TBinaryProtocol> protocol(new TBinaryProtocol(transport));
     DistributedRPCClient client(protocol);
