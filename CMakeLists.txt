@@ -55,6 +55,9 @@ target_link_libraries(adder ${STORM_LIBS})
 add_executable(drpc ${CMAKE_CURRENT_SOURCE_DIR}/tools/drpc.cc)
 target_link_libraries(drpc ${STORM_LIBS})
 
+add_executable(jsoneq ${CMAKE_CURRENT_SOURCE_DIR}/tools/jsoneq.cc)
+target_link_libraries(jsoneq ${STORM_LIBS})
+
 if(STORM_BUILD_TESTS)
     enable_testing()
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/googletest/googletest)
