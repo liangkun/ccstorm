@@ -36,6 +36,8 @@ inline Value ToValue(const std::string &str) { return Value(str.c_str(), str.siz
 // runtime_error otherwise.
 void CheckPath(const Value &path);
 
+std::string ValueToString(const Value &value);
+
 // Encode a json path into a string, throws runtime_error if @param path is illegal.
 std::string PathToString(const Value &path);
 

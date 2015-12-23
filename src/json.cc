@@ -27,6 +27,14 @@ void CheckPath(const Value &path) {
     }
 }
 
+string ValueToString(const Value &value) {
+    StringBuffer buffer;
+    Writer writer(buffer, &g_allocator);
+    value.Accept(writer);
+    const char *str = buffer.GetString();
+    return string(str, buffer.GetSize());
+}
+
 string PathToString(const Value &path) {
     if (!path.IsArray()) throw runtime_error("json path is not an array");
 

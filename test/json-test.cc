@@ -203,3 +203,34 @@ TEST(JsonTest, GetValue_Illegal) {
     obj_element.PushBack(element, g_allocator);
     ASSERT_THROW(GetValue(document, obj_element), runtime_error);
 }
+
+TEST(JsonTest, ValueToString) {
+    Value null;
+    ASSERT_STREQ("null", ValueToString(null).c_str());
+
+    Value empty_object;
+    empty_object.SetObject();
+    ASSERT_STREQ("{}", ValueToString(empty_object).c_str());
+
+    Value empty_array;
+    empty_array.SetArray();
+    ASSERT_STREQ("[]", ValueToString(empty_array).c_str());
+
+    const string json{ "{"
+                               "\"hello\":\"world\","
+                               "\"t\":true,"
+                               "\"f\":false,"
+                               "\"n\":null,"
+                               "\"i\":123,"
+                               "\"pi\":3.1416,"
+                               "\"a\":[1,2,3,4],"
+                               "\"b\":{\"c\":10,\"d\":[5,6,7]}"
+                       "}" };
+    Document document(&g_allocator);
+    document.Parse(json.c_str());
+
+    string njson = ValueToString(document);
+    Document ndocument(&g_allocator);
+    ndocument.Parse(njson.c_str());
+    ASSERT_EQ(document, ndocument);
+}
