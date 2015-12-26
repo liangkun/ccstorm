@@ -41,6 +41,9 @@ std::string ValueToString(const Value &value);
 // Encode a json path into a string, throws runtime_error if @param path is illegal.
 std::string PathToString(const Value &path);
 
+// Decode a json path string into json path, throws runtime_error if @param path_str is illegal.
+Value StringToPath(const std::string &path_str);
+
 // Get the value at the @param path in @param root. Return null if the path does not exist in
 // @param root. throws runtime_error if @param path is illegal.
 const Value *GetValue(const Value &root, const Value &path);
