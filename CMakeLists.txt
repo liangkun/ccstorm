@@ -12,7 +12,7 @@ set(LIB_PATCH_VERSION "0")
 set(LIB_VERSION_STRING "${LIB_MAJOR_VERSION}.${LIB_MINOR_VERSION}.${LIB_PATCH_VERSION}")
 
 # Compile in release with debug info mode by default
-SET(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
+SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build Type")
 option(STORM_BUILD_TESTS "Build storm unittests." ON)
 option(STORM_PROTOCOL_DEBUG_ENABLE "Log every input/output message." OFF)
 set(STORM_PROTOCOL_DEBUG "/tmp")
